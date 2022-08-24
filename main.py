@@ -16,10 +16,15 @@ def frame_to_dict(frame: pd.DataFrame, keys: str):
     dict_of_dict = dict()
     for i in range(len(frame.index)):
         key = frame[keys][i]
-        dict_of_dict[key] = dict()
-        for column in frame.columns:
-            if column != keys:
-                dict_of_dict[key][column] = frame[column][i]
+        if key in dict_of_dict and \
+           frame['Дата ввода информации (фильтр новых поступлений)'][i] <= \
+           dict_of_dict[key]['Дата ввода информации (фильтр новых поступлений)']:
+            continue
+        else:  # date in frame > date in dictionary, or not in dictionary
+            dict_of_dict[key] = dict()
+            for column in frame.columns:
+                if column != keys:
+                    dict_of_dict[key][column] = frame[column][i]
     return dict_of_dict
 
 
@@ -80,6 +85,11 @@ def main():
     data_old = pd.read_excel(PATH_OLD, skiprows=[0])
     data_new = pd.read_excel(PATH_NEW, skiprows=[0])
 
+##    dict_old = frame_to_dict(data_old, 'Обозначение документа')
+##    for key, value in dict_old.items():
+##        print(key, value, sep=':\t', end='\n\n')
+
+
     data_diff = frame_difference(
         data_new, frame_to_dict(data_old, 'Обозначение документа'),
         keys='Обозначение документа')
@@ -90,6 +100,8 @@ def main():
     write_frame_to_excel(data_diff, name_diff)
 
 
+
+##    # Test size of
 ##    data_test = pd.read_excel('test_file.xlsx')
 ##    print(data_test, end='\n\n')
 ##    print('size of data test', sys.getsizeof(data_test), end='\n\n')
@@ -101,7 +113,7 @@ def main():
 
     time_finish = time.time()
     time_diff = time_finish - time_start
-    print('Complete! Time:', '{:.2f}'.format(time_diff), 'sec.')
+    print('\nComplete! Time:', '{:.2f}'.format(time_diff), 'sec.')
 
 
 if __name__ == '__main__':
