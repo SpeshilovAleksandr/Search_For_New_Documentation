@@ -1,2 +1,7 @@
 errors.txt
 ~$*
+*.xlsx
+!notifications DSO.xlsx
+!test_file_new.xlsx
+!notifications DSO 2022-07-29.xlsx
+!test_file_old.xlsx

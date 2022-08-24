@@ -1,7 +1,7 @@
-import pandas as pd
-import datetime
-import time
 import sys
+import time
+import datetime
+import pandas as pd
 
 
 ##PATH_OLD = '.\\archive of notifications DSO\\notifications DSO 2022-07-29.xlsx'
@@ -28,7 +28,7 @@ def trivial_difference(data_new: pd.DataFrame, data_old: pd.DataFrame):
     data_diff = pd.DataFrame(columns=data_new.columns)
     
     for i in range(len(data_new.index)):
-        match = False  # Совпадение с записью из старого списка.
+        match = False  # Match an entry from the old list.
         for j in range(len(data_old.index)):
             if data_new['Обозначение документа'][i] == \
                data_old['Обозначение документа'][j]:
@@ -37,7 +37,7 @@ def trivial_difference(data_new: pd.DataFrame, data_old: pd.DataFrame):
                     data_diff = pd.concat([data_diff,
                                            pd.DataFrame(data_new.loc[i]).T],
                                           ignore_index=True)
-        # Если нет записи в старом списке, значит документ - новый.
+        # If there is no entry in the old list, then the document is new.
         if not match:
             data_diff = pd.concat([data_diff, pd.DataFrame(data_new.loc[i]).T],
                                   ignore_index=True)
@@ -58,35 +58,36 @@ def frame_difference(frame1: pd.DataFrame, frame2: dict, keys: str):
     return data_diff
 
 
+def write_frame_to_excel(frame: pd.DataFrame, name: str):
+    """Write frame to excel file."""
+    today = datetime.date.today()
+    writer = pd.ExcelWriter(name)
+    frame.to_excel(writer, sheet_name='New as of ' + str(today), index=False)
+    # Auto-adjust columns' width
+    for column in frame:
+        column_width = max(frame[column].astype(str).map(len).max(),
+                           len(column)) + 5
+        col_idx = frame.columns.get_loc(column)
+        writer.sheets['New as of ' + str(today)].set_column(col_idx, col_idx,
+                                                            column_width)
+    writer.save()
+
+
 def main():
 
     time_start = time.time()
 
     data_old = pd.read_excel(PATH_OLD, skiprows=[0])
     data_new = pd.read_excel(PATH_NEW, skiprows=[0])
-    
-##    data_diff = frame_difference(
-##        data_new, frame_to_dict(data_old, 'Обозначение документа'),
-##        keys='Обозначение документа')
 
-    data_diff = trivial_difference(data_new, data_old)
+    data_diff = frame_difference(
+        data_new, frame_to_dict(data_old, 'Обозначение документа'),
+        keys='Обозначение документа')
 
-
+    # Write excel file.
     today = datetime.date.today()
-    name_diff = PATH_DIFF + '\\new receipts of DSO ' + str(today) + '.xlsx'
-
-    writer = pd.ExcelWriter(name_diff)
-    data_diff.to_excel(writer, sheet_name='New as of ' + str(today),
-                       index=False)
-    # Auto-adjust columns' width
-    for column in data_diff:
-        column_width = max(data_diff[column].astype(str).map(len).max(),
-                           len(column))
-        col_idx = data_diff.columns.get_loc(column)
-        writer.sheets['New as of ' + str(today)].set_column(col_idx, col_idx,
-                                                            column_width)
-    writer.save()
-
+    name_diff = PATH_DIFF + '\\new receipts of DSO ' + str(today) + '.xlsx'   
+    write_frame_to_excel(data_diff, name_diff)
 
 
 ##    data_test = pd.read_excel('test_file.xlsx')
@@ -100,7 +101,7 @@ def main():
 
     time_finish = time.time()
     time_diff = time_finish - time_start
-    print('Complete! Time:', time_diff, 'секунд.')
+    print('Complete! Time:', '{:.2f}'.format(time_diff), 'sec.')
 
 
 if __name__ == '__main__':
