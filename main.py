@@ -4,8 +4,10 @@ import time
 import sys
 
 
-PATH_OLD = '.\\archive of notifications DSO\\notifications DSO 2022-07-29.xlsx'
-PATH_NEW = '.\\central archive OTD\\notifications DSO.xlsx'
+##PATH_OLD = '.\\archive of notifications DSO\\notifications DSO 2022-07-29.xlsx'
+##PATH_NEW = '.\\central archive OTD\\notifications DSO.xlsx'
+PATH_OLD = '.\\archive of notifications DSO\\test_file_old.xlsx'
+PATH_NEW = '.\\central archive OTD\\test_file_new.xlsx'
 PATH_DIFF = '.\\new receipts of DSO'
 
 
