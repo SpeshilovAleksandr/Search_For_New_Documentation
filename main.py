@@ -22,27 +22,41 @@ def frame_to_dict(frame: pd.DataFrame, keys: str):
                 dict_of_dict[key][column] = frame[column][i]
     return dict_of_dict
 
+
+def trivial_difference(data_new: pd.DataFrame, data_old: pd.DataFrame):
+    """Asymptotic O(N^2)."""
+    data_diff = pd.DataFrame(columns=data_new.columns)
+    
+    for i in range(len(data_new.index)):
+        match = False  # Совпадение с записью из старого списка.
+        for j in range(len(data_old.index)):
+            if data_new['Обозначение документа'][i] == \
+               data_old['Обозначение документа'][j]:
+                match = True
+                if data_new['№  изм.'][i] != data_old['№  изм.'][j]:
+                    data_diff = pd.concat([data_diff,
+                                           pd.DataFrame(data_new.loc[i]).T],
+                                          ignore_index=True)
+        # Если нет записи в старом списке, значит документ - новый.
+        if not match:
+            data_diff = pd.concat([data_diff, pd.DataFrame(data_new.loc[i]).T],
+                                  ignore_index=True)
+    return data_diff
+
+
 def frame_difference(frame1: pd.DataFrame, frame2: dict, keys: str):
     """Return frame1 - frame2."""
     data_diff = pd.DataFrame(columns=frame1.columns)
     for i in range(len(frame1.index)):
         key = frame1[keys][i]
-        
-        # New documentation.
-        if key not in frame2:
-            data_diff = pd.concat([data_diff,
-                                   pd.DataFrame(frame1.loc[i]).T],
-                                  ignore_index=True)
+
+        if key in frame2 and frame1['№  изм.'][i] == frame2[key]['№  изм.']:
             continue
-
-        # Changed documentation.
         else:
-            if frame1['№  изм.'][i] != frame2[key]['№  изм.']:
-                data_diff = pd.concat([data_diff,
-                                       pd.DataFrame(frame1.loc[i]).T],
-                                      ignore_index=True)
-
+            data_diff = pd.concat([data_diff, pd.DataFrame(frame1.loc[i]).T],
+                                  ignore_index=True)
     return data_diff
+
 
 def main():
 
@@ -51,43 +65,26 @@ def main():
     data_old = pd.read_excel(PATH_OLD, skiprows=[0])
     data_new = pd.read_excel(PATH_NEW, skiprows=[0])
     
-    data_diff = frame_difference(
-        data_new, frame_to_dict(data_old, 'Обозначение документа'),
-        keys='Обозначение документа')
+##    data_diff = frame_difference(
+##        data_new, frame_to_dict(data_old, 'Обозначение документа'),
+##        keys='Обозначение документа')
 
-##    print(data_diff, end='\n\n')
+    data_diff = trivial_difference(data_new, data_old)
 
-##    data_diff = pd.DataFrame(
-##        columns=['Обозначение документа', '№  изм.', 'Наименование', 'Город',
-##                 'Организация', 'Дата ввода информации (фильтр новых поступлений)',
-##                 'Примечание'])
-
-##    for i in range(len(data_new.index)):
-##        match = False  # Совпадение с записью из старого списка.
-##        for j in range(len(data_old.index)):
-##            if data_new['Обозначение документа'][i] == \
-##               data_old['Обозначение документа'][j]:
-##                match = True
-##                if data_new['№  изм.'][i] != data_old['№  изм.'][j]:
-##                    data_diff = pd.concat([data_diff,
-##                                           pd.DataFrame(data_new.loc[i]).T],
-##                                          ignore_index=True)
-##
-##        # Если нет записи в старом списке, значит документ - новый.
-##        if not match:
-##            data_diff = pd.concat([data_diff, pd.DataFrame(data_new.loc[i]).T],
-##                                  ignore_index=True)
 
     today = datetime.date.today()
     name_diff = PATH_DIFF + '\\new receipts of DSO ' + str(today) + '.xlsx'
 
     writer = pd.ExcelWriter(name_diff)
-    data_diff.to_excel(writer, sheet_name=str(today), index=False)
+    data_diff.to_excel(writer, sheet_name='New as of ' + str(today),
+                       index=False)
     # Auto-adjust columns' width
     for column in data_diff:
-        column_width = max(data_diff[column].astype(str).map(len).max(), len(column))
+        column_width = max(data_diff[column].astype(str).map(len).max(),
+                           len(column))
         col_idx = data_diff.columns.get_loc(column)
-        writer.sheets[str(today)].set_column(col_idx, col_idx, column_width)
+        writer.sheets['New as of ' + str(today)].set_column(col_idx, col_idx,
+                                                            column_width)
     writer.save()
 
 
