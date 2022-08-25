@@ -1,6 +1,7 @@
 errors.txt
 ~$*
 *.xlsx
+/new receipts of DSO
 !notifications DSO.xlsx
 !test_file_new.xlsx
 !notifications DSO 2022-07-29.xlsx

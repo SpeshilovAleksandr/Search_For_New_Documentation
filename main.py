@@ -49,16 +49,18 @@ def trivial_difference(data_new: pd.DataFrame, data_old: pd.DataFrame):
     return data_diff
 
 
-def frame_difference(frame1: pd.DataFrame, frame2: dict, keys: str):
-    """Return frame1 - frame2."""
-    data_diff = pd.DataFrame(columns=frame1.columns)
-    for i in range(len(frame1.index)):
-        key = frame1[keys][i]
-
-        if key in frame2 and frame1['№  изм.'][i] == frame2[key]['№  изм.']:
+def frame_difference(frame_1: pd.DataFrame, frame_2: pd.DataFrame, keys: str):
+    """Return frame_1 - frame_2."""
+    dictionary = frame_to_dict(frame_2, keys)
+    data_diff = pd.DataFrame(columns=frame_1.columns)
+    for i in range(len(frame_1.index)):
+        key = frame_1[keys][i]
+        if key in dictionary and \
+           frame_1['Дата ввода информации (фильтр новых поступлений)'][i] <= \
+           dictionary[key]['Дата ввода информации (фильтр новых поступлений)']:
             continue
         else:
-            data_diff = pd.concat([data_diff, pd.DataFrame(frame1.loc[i]).T],
+            data_diff = pd.concat([data_diff, pd.DataFrame(frame_1.loc[i]).T],
                                   ignore_index=True)
     return data_diff
 
@@ -85,14 +87,7 @@ def main():
     data_old = pd.read_excel(PATH_OLD, skiprows=[0])
     data_new = pd.read_excel(PATH_NEW, skiprows=[0])
 
-##    dict_old = frame_to_dict(data_old, 'Обозначение документа')
-##    for key, value in dict_old.items():
-##        print(key, value, sep=':\t', end='\n\n')
-
-
-    data_diff = frame_difference(
-        data_new, frame_to_dict(data_old, 'Обозначение документа'),
-        keys='Обозначение документа')
+    data_diff = frame_difference(data_new, data_old, 'Обозначение документа')
 
     # Write excel file.
     today = datetime.date.today()
