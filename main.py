@@ -4,10 +4,10 @@ import datetime
 import pandas as pd
 
 
-PATH_OLD = '.\\archive of notifications DSO\\notifications DSO 2022-07-29.xlsx'
-PATH_NEW = '.\\central archive OTD\\notifications DSO.xlsx'
-##PATH_OLD = '.\\archive of notifications DSO\\test_file_old.xlsx'
-##PATH_NEW = '.\\central archive OTD\\test_file_new.xlsx'
+##PATH_OLD = '.\\archive of notifications DSO\\notifications DSO 2022-07-29.xlsx'
+##PATH_NEW = '.\\central archive OTD\\notifications DSO.xlsx'
+PATH_OLD = '.\\archive of notifications DSO\\test_file_old.xlsx'
+PATH_NEW = '.\\central archive OTD\\test_file_new.xlsx'
 PATH_DIFF = '.\\new receipts of DSO'
 
 
@@ -122,6 +122,7 @@ def find_identical_cells(df: pd.DataFrame, column: str):
     finish = 0
     value = None
     first_match = True
+    group = False
     print(1, df[column][0])
     for i in range(1, len(df.index)):
         print(i+1, df[column][i])
@@ -130,6 +131,7 @@ def find_identical_cells(df: pd.DataFrame, column: str):
             start = i-1
             finish = i
             first_match = not first_match
+            group = True
             continue
         elif df[column][i] == df[column][i-1] and not first_match:
             finish = i
@@ -138,11 +140,13 @@ def find_identical_cells(df: pd.DataFrame, column: str):
             cells = (start+1, col_idx, finish+1, col_idx, value)
             identical_cells.append(cells)
             first_match = not first_match
+            group = False
         elif df[column][i] != df[column][i-1] and first_match:
+            group = False
             continue
-        
-    cells = (start+1, col_idx, finish+1, col_idx, value)
-    identical_cells.append(cells)
+    if group:        
+        cells = (start+1, col_idx, finish+1, col_idx, value)
+        identical_cells.append(cells)
             
     for cells in identical_cells:
         print(cells)
