@@ -4,10 +4,10 @@ import datetime
 import pandas as pd
 
 
-##PATH_OLD = '.\\archive of notifications DSO\\notifications DSO 2022-07-29.xlsx'
-##PATH_NEW = '.\\central archive OTD\\notifications DSO.xlsx'
-PATH_OLD = '.\\archive of notifications DSO\\test_file_old.xlsx'
-PATH_NEW = '.\\central archive OTD\\test_file_new.xlsx'
+PATH_OLD = '.\\archive of notifications DSO\\notifications DSO 2022-07-29.xlsx'
+PATH_NEW = '.\\central archive OTD\\notifications DSO.xlsx'
+##PATH_OLD = '.\\archive of notifications DSO\\test_file_old.xlsx'
+##PATH_NEW = '.\\central archive OTD\\test_file_new.xlsx'
 PATH_DIFF = '.\\new receipts of DSO'
 
 
@@ -82,9 +82,16 @@ def write_frame_to_excel(frame: pd.DataFrame, name: str):
         'valign': 'top',
         'font': 'Times New Roman',
         'size': '14'})
-    cell_format = workbook.add_format({
+    cell_format_center = workbook.add_format({
         'align': 'center',
         'valign': 'vcenter',
+        'text_wrap': True,
+        'font': 'Times New Roman',
+        'size': '14'})
+    cell_format_left = workbook.add_format({
+        'align': 'left',
+        'valign': 'vcenter',
+        'text_wrap': True,
         'font': 'Times New Roman',
         'size': '14'})
     
@@ -97,10 +104,11 @@ def write_frame_to_excel(frame: pd.DataFrame, name: str):
     for column in columns:
         identical_cells = find_identical_cells(frame, column)
         for cells in identical_cells:
-            worksheet.merge_range(*cells, cell_format)
+            worksheet.merge_range(*cells, cell_format_center)
 
     # Format column.
-    worksheet.set_column(0, 0, 30, cell_format)
+    worksheet.set_column(0, 1, 30, cell_format_center)
+    worksheet.set_column(2, 3, 30, cell_format_left)
 
     # Auto-adjust columns' width.
     for column in frame:
